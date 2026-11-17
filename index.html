@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="同步觀察半波、中心抽頭式全波與橋式整流的電路、麵包板與波形。">
+  <title>整流觀察室</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="lab.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="shell mast-inner">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="10"/><path d="M5 18h4c3 0 3-8 6-8s3 16 6 16 3-8 6-8h4"/></svg>
+        整流觀察室
+      </a>
+      <span>電子電路互動學習單</span>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="intro">
+      <div>
+        <h1>從交流到<span>整流</span></h1>
+        <p>拖曳時間游標，同步觀察二極體導通、麵包板 LED 明暗與輸出波形。</p>
+      </div>
+      <div class="source-tag"><span>∿</span><div><strong>60 Hz</strong><small>低壓交流輸入</small></div></div>
+    </div>
+
+    <nav class="modes" aria-label="整流單元" role="tablist">
+      <button id="tab-half" role="tab" aria-controls="experiment" data-mode="half" aria-selected="true"><strong>半波整流</strong><small>單顆二極體</small></button>
+      <button id="tab-center" role="tab" aria-controls="experiment" data-mode="center" aria-selected="false" tabindex="-1"><strong>全波整流</strong><small>中心抽頭式 · 補充</small></button>
+      <button id="tab-bridge" role="tab" aria-controls="experiment" data-mode="bridge" aria-selected="false" tabindex="-1"><strong>橋式整流</strong><small>四顆二極體</small></button>
+    </nav>
+
+    <section id="experiment" role="tabpanel" aria-labelledby="tab-half">
+      <div class="lab-head">
+        <div><h2 id="lesson-title"></h2><p id="lesson-copy"></p></div>
+        <fieldset class="segments" id="half-controls">
+          <legend class="sr-only">串接整流二極體</legend>
+          <label><input type="radio" name="rectify" value="bypass">串接前</label>
+          <label><input type="radio" name="rectify" value="insert" checked>串接後</label>
+        </fieldset>
+      </div>
+
+      <div class="view-picker" id="view-picker" role="group" aria-label="選擇圖面" tabindex="-1">
+        <button type="button" data-view-choice="schematic" aria-controls="schematic-panel" aria-pressed="true">電路圖</button>
+        <button type="button" data-view-choice="board" aria-controls="board-panel" aria-pressed="false">麵包板</button>
+      </div>
+      <div class="visual-grid" id="visual-grid" data-view="schematic" role="group" aria-label="電路圖與麵包板" tabindex="-1">
+        <article class="panel" id="schematic-panel">
+          <div class="panel-head diagram-head">
+            <div><h3>電路圖</h3><span>電阻負載 R<sub>L</sub></span></div>
+            <button type="button" class="zoom" aria-controls="schematic" aria-pressed="false" aria-label="放大電路圖">放大</button>
+          </div>
+          <div id="schematic" class="art schematic"></div>
+          <p class="zoom-hint">左右滑動查看完整圖面</p>
+          <div class="panel-foot"><span class="key"><i></i>導通路徑</span><span id="path-status"></span></div>
+        </article>
+        <article class="panel" id="board-panel">
+          <div class="panel-head diagram-head">
+            <div><h3>麵包板</h3><span>LED 實驗負載</span></div>
+            <button type="button" class="zoom" aria-controls="board" aria-pressed="false" aria-label="放大麵包板">放大</button>
+          </div>
+          <div id="board" class="art board"></div>
+          <p class="zoom-hint">左右滑動查看完整圖面</p>
+          <div class="panel-foot"><div id="led-status" class="led-list"></div><span id="part-hint"></span></div>
+        </article>
+      </div>
+      <div class="part-picker" id="part-picker" role="group" aria-label="對照二極體"></div>
+
+      <article class="panel waveform">
+        <div class="panel-head wave-head">
+          <div><h3>輸入與輸出波形</h3><p>兩張電路共用這條時間軸</p></div>
+          <div class="metrics"><span id="pulse-rate"></span></div>
+        </div>
+        <div class="wave-body">
+          <div id="plot"></div>
+          <div class="wave-key"><span><i></i>交流輸入 Vᵢ</span><span><i></i>電阻輸出 Vₒ</span><span><i></i>LED 發光區間</span></div>
+          <div class="control-deck" id="control-deck" role="group" aria-label="時間與播放控制">
+            <div class="scrubber">
+              <label class="sr-only" for="timeline">時間游標（毫秒）</label>
+              <input id="timeline" type="range" min="0" max="2000" step="1" value="250">
+              <output id="time-readout" for="timeline" aria-live="off"></output>
+            </div>
+            <button type="button" class="play" id="play"><span id="play-symbol" aria-hidden="true">▶</span> <span id="play-label">慢速播放</span></button>
+            <label for="speed" class="sr-only">慢速播放速度</label>
+            <select id="speed"><option value="8">慢速 ×0.5</option><option selected value="4">慢速 ×1</option><option value="2">慢速 ×2</option></select>
+            <div class="jumps" role="group" aria-label="跳至相位">
+              <button type="button" data-phase="0.25">正半週峰值</button>
+              <button type="button" data-phase="0.5">零交越</button>
+              <button type="button" data-phase="0.75">負半週峰值</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <section id="quiz" class="quiz panel" hidden>
+        <div class="panel-head"><h3>橋式整流路徑練習</h3><span>先預測，再觀察</span></div>
+        <form id="quiz-form">
+          <fieldset class="segments">
+            <legend>選一個半週</legend>
+            <label><input type="radio" name="quiz-phase" value="0.25" checked>正半週</label>
+            <label><input type="radio" name="quiz-phase" value="0.75">負半週</label>
+          </fieldset>
+          <fieldset class="quiz-parts">
+            <legend>選出會導通的兩顆二極體</legend>
+            <label><input type="checkbox" name="diode" value="D1"> D1</label>
+            <label><input type="checkbox" name="diode" value="D2"> D2</label>
+            <label><input type="checkbox" name="diode" value="D3"> D3</label>
+            <label><input type="checkbox" name="diode" value="D4"> D4</label>
+          </fieldset>
+          <button class="play" type="submit">檢查答案</button>
+          <div class="quiz-result">
+            <p id="quiz-feedback" role="status"></p>
+            <button class="zoom" id="show-quiz-path" type="button" hidden>查看導通路徑</button>
+          </div>
+        </form>
+      </section>
+
+      <details class="model">
+        <summary>模擬條件與學習單對照</summary>
+        <p>電阻波形以每顆整流二極體約 0.7 V 的簡化模型計算。麵包板以 200 Ω 限流電阻串接 LED，紅光與綠光 LED 的示意順向壓降分別為 1.8 V、2.2 V。輸入設為峰值 6 V 的低壓正弦波，中心抽頭式以次級單側對中心抽頭的電壓為參考。</p>
+        <p>學習單圖 2-35、2-37、2-40 與 2-41 分別對應半波、全波輸出及橋式路徑。中心抽頭式是補充示範。學習單實驗記錄中的「常亮」可用來討論肉眼觀察，動畫以慢速呈現無濾波電路的週期亮度變化。</p>
+      </details>
+    </section>
+  </main>
+</body>
+</html>
